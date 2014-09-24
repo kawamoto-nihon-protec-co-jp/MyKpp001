@@ -5,4 +5,12 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         android:showAsAction="never" />
+    <item android:id="@+id/action_startstop_watch"
+        android:title="@string/action_startstop_watch"
+        android:orderInCategory="200"
+        android:showAsAction="never" />
+    <item android:id="@+id/action_startstop_service"
+        android:title="@string/action_startstop_service"
+        android:orderInCategory="400"
+        android:showAsAction="never" />
 </menu>
