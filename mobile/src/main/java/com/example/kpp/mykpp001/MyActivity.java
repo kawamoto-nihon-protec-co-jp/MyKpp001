@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -29,6 +30,8 @@ public class MyActivity extends Activity
     private boolean mResolvingError = false;
 
     private static final int REQUEST_RESOLVE_ERROR = 1001;
+
+    public static String rate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +136,8 @@ public class MyActivity extends Activity
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart");
+
 //        if (!mResolvingError) {
 //            mGoogleApiClient.connect();
 //        }

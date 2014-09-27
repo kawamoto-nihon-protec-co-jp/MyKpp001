@@ -16,7 +16,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -26,7 +25,6 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.mariux.teleport.lib.TeleportClient;
 
-import java.util.Calendar;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
@@ -62,32 +60,6 @@ public class MyActivity extends Activity implements SensorEventListener {
                 //startactivity only code goes here
             }
         }
-//        sendNotificationToMobile();
-//        mGoogleAppiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks()
-//                {
-//                    @Override
-//                    public void onConnected(Bundle connectionHint) {
-//                        Log.d(TAG, "onConnected: " + connectionHint);
-//                        putDataItem();
-//                    }
-//                    @Override
-//                    public void onConnectionSuspended(int cause) {
-//                        Log.d(TAG, "onConnectionSuspended: " + cause);
-//                    }
-//                })
-//                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-//                    @Override
-//                    public void onConnectionFailed(ConnectionResult result) {
-//                        Log.d(TAG, "onConnectionFailed: " + result);
-//                    }
-//                })
-//                .addApi(Wearable.API)
-//                .build();
-
-
-//        teleportClient = new TeleportClient(this);
-//        teleportClient.setOnGetMessageTask(new ShowToastFromOnGetMessageTask());
         latch = new CountDownLatch(1);
         final Context context = this;
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
@@ -97,65 +69,7 @@ public class MyActivity extends Activity implements SensorEventListener {
                 ((Button) findViewById(R.id.btn_submit)).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        sendNotificationToMobile();
-//                        mGoogleAppiClient.connect();
-//                        //google api
-//                        Log.d(TAG, "google api 1");
-//                        // パスを指定して PutDataMapRequest を生成
-//                        PutDataMapRequest dataMap = PutDataMapRequest.create("/count");
-//                        Log.d(TAG, "google api 2");
-//                        // 必要な値を DataMap にセット
-//                        dataMap.getDataMap().putInt("HERT_RATE", R.id.txt_rate);
-//                        Log.d(TAG, "google api 3");
-//                        // PutDataRequest を取得
-//                        PutDataRequest request = dataMap.asPutDataRequest();
-//                        Log.d(TAG, "google api 4");
-//                        // DataItem の生成をリクエスト
-//                        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-//                                .putDataItem(mGoogleAppiClient, request);
-//                        final GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
-//                                .addApi(Wearable.API)
-//                                .build();
-//                        googleApiClient.connect();
-//                        String value = "update_request";
-//                        value = value +  Calendar.getInstance().getTimeInMillis();
-//                        PutDataMapRequest dataMap = PutDataMapRequest.create("/create");
-//                        dataMap.getDataMap().putString(Tools.WEAR_ACTION_UPDATE, value);
-//                        PutDataRequest request = dataMap.asPutDataRequest();
-//                        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(googleApiClient, request);
-//                        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-//                            @Override
-//                            public void onResult(DataApi.DataItemResult dataItemResult) {
-//                                Log.d(TAG, "Sent: " + dataItemResult.toString());
-//                                mGoogleAppiClient.disconnect();
-//                            }
-//                        });
-
-
-
-                        //Message
-//                        new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                final String message = txtRate.toString();
-//                                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleAppiClient).await();
-//                                for (Node node : nodes.getNodes()) {
-//                                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-//                                            mGoogleAppiClient,
-//                                            node.getId(),
-//                                            message,
-//                                            message.getBytes())
-//                                            .await();
-//                                    if (result.getStatus().isSuccess()) {
-//                                        Log.d("onClick", "isSuccess is true!");
-//                                    } else {
-//                                        Log.d("onClick", "isSuccess is false");
-//                                    }
-//                                }
-//                            }
-//                         }).start();
-
-
+                        sendHertRate();
                     }
                 });
 
@@ -168,66 +82,6 @@ public class MyActivity extends Activity implements SensorEventListener {
 
         sensorManager = ((SensorManager)getSystemService(SENSOR_SERVICE));
         sensor = sensorManager.getDefaultSensor(SENSOR_TYPE_HEARTRATE); // using Sensor Lib2 (Samsung Gear Live)
-
-//        //tomo
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(Wearable.API)
-//                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-//                    @Override
-//                    public void onConnected(Bundle bundle) {
-//                        Log.d(TAG, "Google Api Client connected");
-//                        new AsyncTask<Void, Void, Void>() {
-//                            @Override
-//                            protected Void doInBackground(Void... voids) {
-//                               // restoreCurrentCount();
-//                                return null;
-//                            }
-//                        }.execute();
-//                    }
-//
-//                    @Override
-//                    public void onConnectionSuspended(int i) {
-//                    }
-//                }).build();
-//        mGoogleApiClient.connect();
-        this.mGoogleAppiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle connectionHint) {
-                        Log.d(TAG, "onConnected: " + connectionHint);
-                        // パスを指定して PutDataMapRequest を生成
-                        //tomo
-                        //PutDataMapRequest dataMap = PutDataMapRequest.create("/count");
-
-                        // 必要な値を DataMap にセット
-                        //tomo
-                        // //dataMap.getDataMap().putInt("HERT_RATE", 10);
-
-                        // PutDataRequest を取得
-                        //tomo
-                        //PutDataRequest request = dataMap.asPutDataRequest();
-
-                        // DataItem の生成をリクエスト
-                        //tomo
-                        // PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-                           //     .putDataItem(mGoogleApiClient, request);
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int cause) {
-                        Log.d(TAG, "onConnectionSuspended: " + cause);
-                    }
-                })
-                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener()
-                {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                        Log.d(TAG, "onConnectionFailed: " + result);
-                    }
-                })
-                .addApi(Wearable.API)
-                .build();
-        this.mGoogleAppiClient.connect();
     }
 
 
@@ -272,57 +126,6 @@ public class MyActivity extends Activity implements SensorEventListener {
         sensorManager.unregisterListener(this);
     }
 
-    private void sendHertRate(Context context) {
-        //tomo
-//        final String message = "Hello world";//txtRate.toString();
-//        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleAppiClient).await();
-//        for (Node node : nodes.getNodes()) {
-//            MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-//                    mGoogleAppiClient,
-//                    node.getId(),
-//                    "/hello",
-//                    message.getBytes())
-//                    .await();
-//            if (result.getStatus().isSuccess()) {
-//                Log.d("onClick", "isSuccess is true");
-//            } else {
-//                Log.d("onClick", "isSuccess is false");
-//            }
-//        }
-//        GoogleApiClient mGoogleAppiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-//                    @Override
-//                    public void onConnected(Bundle connectionHint) {
-//                        Log.d(TAG, "onConnected: " + connectionHint);
-//                        // パスを指定して PutDataMapRequest を生成
-//                        PutDataMapRequest dataMap = PutDataMapRequest.create("/count");
-//
-//                        // 必要な値を DataMap にセット
-//                        dataMap.getDataMap().putInt("HERT_RATE", R.id.txt_rate);
-//
-//                        // PutDataRequest を取得
-//                        PutDataRequest request = dataMap.asPutDataRequest();
-//
-//                        // DataItem の生成をリクエスト
-//                        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-//                                .putDataItem(mGoogleApiClient, request);
-//                    }
-//
-//                    @Override
-//                    public void onConnectionSuspended(int cause) {
-//                        Log.d(TAG, "onConnectionSuspended: " + cause);
-//                    }
-//                })
-//                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener()
-//        {
-//                    @Override
-//                    public void onConnectionFailed(ConnectionResult result) {
-//                        Log.d(TAG, "onConnectionFailed: " + result);
-//                    }
-//                })
-//                .addApi(Wearable.API)
-//                .build();
-    }
     private void putDataItem(){
         Log.d(TAG, "putDataItem!");
         Random random = new Random(SystemClock.currentThreadTimeMillis());
@@ -331,17 +134,15 @@ public class MyActivity extends Activity implements SensorEventListener {
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleAppiClient, putDataMapRequest.asPutDataRequest());
     }
 
-    private void sendNotificationToMobile(){
+    private void sendHertRate(){
         //Send empty string to ask phone to refresh weather data
         Log.d(TAG, "sendNotificationToMobile ");
         final GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .build();
         googleApiClient.connect();
-        String value = "update_request";
-        value = value +  Calendar.getInstance().getTimeInMillis();
         PutDataMapRequest dataMap = PutDataMapRequest.create("/create");
-        dataMap.getDataMap().putString("key_hrtrate", "kawamoto");
+        dataMap.getDataMap().putString("hert_rate", txtRate.getText().toString());
         PutDataRequest request = dataMap.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(googleApiClient, request);
         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
