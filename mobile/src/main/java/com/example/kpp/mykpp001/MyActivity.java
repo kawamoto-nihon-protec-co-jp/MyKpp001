@@ -2,25 +2,34 @@ package com.example.kpp.mykpp001;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.data.FreezableUtils;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 import com.mariux.teleport.lib.TeleportClient;
+
+import java.util.List;
 
 
 public class MyActivity extends Activity
-//        implements DataApi.DataListener, ConnectionCallbacks, OnConnectionFailedListener
-{
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener {
+
+    private GoogleApiClient mGoogleApiClient;
 
     private static final String TAG = MyActivity.class.getName();
 
+    private String heartRate = "";
     private TextView txtRate;
-    private GoogleApiClient mGoogleApiClient;
     TeleportClient teleportClient;
 
     private static boolean startedWatch = false;
@@ -38,100 +47,47 @@ public class MyActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
-        Intent intent = getIntent();
-
-//        if (success) {
-//            Intent intent = new Intent(this, MyActivity.class);
-//            startActivity(intent);
-//            finish();
-//        } else {
-//            mPasswordView.setError(getString(R.string.error_incorrect_password));
-//            mPasswordView.requestFocus();
-//        }
-
-        //teleportClient = new TeleportClient(this);
-        //teleportClient.setOnGetMessageTask(new ShowHRFromOnGetMessageTask());
-
         txtRate = (TextView) findViewById(R.id.txt_rate);
 
-//        if (AppConfig.AUTONOMOUS_OPERATION) {
-//            startService(new Intent(DataService.class.getName()));
-//            startedService = true;
-//        }
-
-        //tomo
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(Wearable.API)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .build();
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
 
     }
 
-//    public class ShowHRFromOnGetMessageTask extends TeleportClient.OnGetMessageTask {
-//
-//        @Override
-//        protected void onPostExecute(String path) {
-//            //Toast.makeText(getApplicationContext(), "Message - " + path, Toast.LENGTH_SHORT).show();
-//            try {
-//                double value = Double.valueOf(path);
-//                txtRate.setText(path);
-//            } catch(Exception e) {
-//                //not a heart rate value, discard
-//            }
-//            //let's reset the task (otherwise it will be executed only once)
-//            teleportClient.setOnGetMessageTask(new ShowHRFromOnGetMessageTask());
-//        }
-//    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
 
-//    @Override
-//    public void onConnected(Bundle connectionHint) {
-//        if (Log.isLoggable(TAG, Log.DEBUG)) {
-//            Log.d(TAG, "Connected to Google Api Service");
-//        }
-//        mResolvingError = false;
-//        Wearable.DataApi.addListener(mGoogleApiClient, this);
-//    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            Wearable.DataApi.removeListener(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
+        }
+    }
 
-//    @Override
-//    public void onConnectionSuspended(int i) {
-//
-//    }
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(TAG, "onConnected");
+        Wearable.DataApi.addListener(mGoogleApiClient, this);
+    }
 
-//    @Override
-//    public void onConnectionFailed(ConnectionResult result) {
-//        if (mResolvingError) {
-//            // Already attempting to resolve an error.
-//            return;
-//        } else if (result.hasResolution()) {
-//            try {
-//                mResolvingError = true;
-//                result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
-//            } catch (IntentSender.SendIntentException e) {
-//                // There was an error with the resolution intent. Try again.
-//                mGoogleApiClient.connect();
-//            }
-//        } else {
-//            Log.e(TAG, "Connection to Google API client has failed");
-//            mResolvingError = false;
-//            Wearable.DataApi.removeListener(mGoogleApiClient, this);
-//        }
-//    }
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(TAG, "onConnectionSuspended");
+    }
 
-//    @Override
-//    public void onDataChanged(DataEventBuffer dataEvents) {
-//        final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
-//        dataEvents.close();
-//
-//        for (DataEvent event : events) {
-//            if (event.getType() == DataEvent.TYPE_DELETED) {
-//                Log.d(TAG, "DataItem deleted: " + event.getDataItem().getUri());
-//            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
-//                Log.d(TAG, "DataItem changed: " + event.getDataItem().getUri());
-//            }
-//        }
-//        Wearable.DataApi.addListener(mGoogleApiClient,this);
-//    }
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e(TAG, "onConnectionFailed: " + connectionResult);
+    }
 
     @Override
     protected void onStart() {
@@ -168,32 +124,31 @@ public class MyActivity extends Activity
         if (id == R.id.action_settings) {
             return true;
         }
-        if (id == R.id.action_startstop_watch) {
-            if (teleportClient != null) {
-                if (startedWatch){
-                    teleportClient.sendMessage(AppConfig.STOP_ACTIVITY, null);
-                    startedWatch = false;
-                }
-                else {
-                    teleportClient.sendMessage(AppConfig.START_ACTIVITY, null);
-                    startedWatch = true;
-                }
-            }
-            return true;
-        }
-        if (id == R.id.action_startstop_service) {
-            if(startedService) {
-                stopService(new Intent(MyService.class.getName()));
-                startedService = false;
-            }
-            else {
-                startService(new Intent(MyService.class.getName()));
-                startedService = true;
-            }
-            return true;
-        }
 
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d(TAG, "onDataChanged");
+        final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
+        for (DataEvent event : dataEvents) {
+            if (event.getType() == DataEvent.TYPE_DELETED) {
+                Log.d(TAG, "DataItem deleted: " + event.getDataItem().getUri());
+            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
+                Log.d(TAG, "DataItem changed: " + event.getDataItem().getUri());
+                DataMapItem item = DataMapItem.fromDataItem(event.getDataItem());
+                Log.d(TAG, "item value 2");
+                heartRate = item.getDataMap().getString("hert_rate");
+                Log.d(TAG, "hert_rate :" + heartRate);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtRate.setText(heartRate);
+                    }
+                });
+
+            }
+        }
+    }
 }

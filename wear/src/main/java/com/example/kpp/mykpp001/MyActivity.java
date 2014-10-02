@@ -1,6 +1,7 @@
 package com.example.kpp.mykpp001;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -8,7 +9,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +16,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -25,30 +26,42 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.mariux.teleport.lib.TeleportClient;
 
-import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 //import com.google.android.gms.common.ConnectionResult;
 
 //import com.google.android.gms.common.ConnectionResult;
 
-public class MyActivity extends Activity implements SensorEventListener {
+public class MyActivity extends Activity
+        implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MyActivity.class.getName();
 
     private TextView txtRate;
+    private TextView txtMsg;
     private static final int SENSOR_TYPE_HEARTRATE = 65562;
     private Sensor sensor;
     private SensorManager sensorManager;
     private CountDownLatch latch;
-    private GoogleApiClient mGoogleAppiClient;
+    private GoogleApiClient mGoogleApiClient;
+
+    private boolean changed = true;
 
     TeleportClient teleportClient;
+
+    private ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
+
+        //-----[ダイアログの設定]
+        startDialog();
+
+        //-----[ローディングの描画は別スレッドで行う]
+//        Thread thread = new Thread(new Progress());
+//        thread.start();
 
         // 画面をスリープ状態にさせない
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -74,7 +87,7 @@ public class MyActivity extends Activity implements SensorEventListener {
                 });
 
                 txtRate = (TextView) stub.findViewById(R.id.txt_rate);
-                txtRate.setText("少々お待ちください...");
+                //txtRate.setText("少々お待ちください...");
 
                 latch.countDown();
             }
@@ -82,8 +95,49 @@ public class MyActivity extends Activity implements SensorEventListener {
 
         sensorManager = ((SensorManager)getSystemService(SENSOR_SERVICE));
         sensor = sensorManager.getDefaultSensor(SENSOR_TYPE_HEARTRATE); // using Sensor Lib2 (Samsung Gear Live)
+
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
     }
 
+    private void startDialog() {
+        dialog = new ProgressDialog(this);
+        dialog.setTitle("測定中");
+        dialog.setMessage("お待ちください...");
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        dialog.show();
+    }
+
+    private void endDialog() {
+        dialog.dismiss();
+        dialog = null;
+    }
+
+//    private class Progress implements Runnable {
+//
+//        public void run() {
+//            try {
+//                Thread.sleep(10000);//ここで画像を読み込む処理などを書く
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//            //-----[読み込み終了の通知]
+//            handler.sendEmptyMessage(0);
+//        }
+//    }
+//
+//    private Handler handler = new Handler() {
+//        @Override
+//        public void handleMessage(Message msg) {
+//            //-----[ダイアログを閉じる]
+//            dialog.dismiss();
+//        }
+//    };
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -108,8 +162,14 @@ public class MyActivity extends Activity implements SensorEventListener {
             latch.await();
             if (event.values[0] > 0) {
                 Log.d(TAG, "sensor event: " + event.accuracy + " = " + event.values[0]);
-                txtRate.setText(String.valueOf(event.values[0]));
+//                if (changed) {
+                    txtRate.setText(String.valueOf(event.values[0]));
+                    endDialog();
+                    sensorManager.unregisterListener(this, this.sensor);
+                    changed = false;
+//                }
             }
+
         } catch (InterruptedException e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -126,12 +186,18 @@ public class MyActivity extends Activity implements SensorEventListener {
         sensorManager.unregisterListener(this);
     }
 
-    private void putDataItem(){
-        Log.d(TAG, "putDataItem!");
-        Random random = new Random(SystemClock.currentThreadTimeMillis());
-        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/foo");
-        putDataMapRequest.getDataMap().putInt("my_key", random.nextInt());
-        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleAppiClient, putDataMapRequest.asPutDataRequest());
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+        super.onPause();
     }
 
     private void sendHertRate(){
@@ -148,10 +214,24 @@ public class MyActivity extends Activity implements SensorEventListener {
         pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
             @Override
             public void onResult(DataApi.DataItemResult dataItemResult) {
-                Log.d(TAG, "Sent: " + dataItemResult.toString());
+                Log.d(TAG, "onResult " + dataItemResult.toString());
                 googleApiClient.disconnect();
             }
         });
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(TAG, "onConnected");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(TAG, "onConnectionSuspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e(TAG, "onConnectionFailed: " + connectionResult);
+    }
 }
