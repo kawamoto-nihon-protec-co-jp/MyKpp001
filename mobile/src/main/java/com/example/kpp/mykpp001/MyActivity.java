@@ -1,12 +1,16 @@
 package com.example.kpp.mykpp001;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,15 +25,16 @@ import com.mariux.teleport.lib.TeleportClient;
 import java.util.List;
 
 
-public class MyActivity extends Activity
-        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener {
+public class MyActivity extends FragmentActivity
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener, LoaderManager.LoaderCallbacks<TransData> {
 
     private GoogleApiClient mGoogleApiClient;
 
     private static final String TAG = MyActivity.class.getName();
 
     private String heartRate = "";
-    private TextView txtRate;
+    private EditText txtRate;
+
     TeleportClient teleportClient;
 
     private static boolean startedWatch = false;
@@ -47,7 +52,7 @@ public class MyActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
-        txtRate = (TextView) findViewById(R.id.txt_rate);
+        txtRate = (EditText) findViewById(R.id.txt_rate);
 
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -56,6 +61,49 @@ public class MyActivity extends Activity
                 .addApi(Wearable.API)
                 .build();
 
+        Button sendButton = (Button) findViewById(R.id.btn_submit);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendHealthData();
+            }
+        });
+
+    }
+
+    private void sendHealthData() {
+        TransData sendData = new TransData();
+        Bundle args = new Bundle();
+        sendData.data = txtRate.getText().toString();
+        args.putSerializable("data", sendData);
+        getSupportLoaderManager().initLoader(0, args, this);
+    }
+
+    public Loader<TransData> onCreateLoader(int id, Bundle args) {
+        if( null != args ) {
+            TransData sendData = (TransData) args.getSerializable("data");
+
+            return new HttpAccesser(this, sendData);
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<TransData> loader, TransData recvData) {
+        // AsyncTaskLoaderの処理が終了したら呼び出される
+        if(null == recvData) {
+            return;
+        }
+        else {
+            EditText editText;
+            editText = (EditText) findViewById(R.id.editText);
+            editText.setText(recvData.data);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<TransData> loader) {
+        // AsyncTaskLoaderが破棄されるときに呼び出される
     }
 
     @Override

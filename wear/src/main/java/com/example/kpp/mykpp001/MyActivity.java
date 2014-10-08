@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -37,7 +38,7 @@ public class MyActivity extends Activity
 
     private static final String TAG = MyActivity.class.getName();
 
-    private TextView txtRate;
+    private EditText txtRate;
     private TextView txtMsg;
     private static final int SENSOR_TYPE_HEARTRATE = 65562;
     private Sensor sensor;
@@ -86,7 +87,7 @@ public class MyActivity extends Activity
                     }
                 });
 
-                txtRate = (TextView) stub.findViewById(R.id.txt_rate);
+                txtRate = (EditText) stub.findViewById(R.id.txt_rate);
                 //txtRate.setText("少々お待ちください...");
 
                 latch.countDown();
