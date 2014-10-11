@@ -75,4 +75,14 @@
         android:textSize="80dp"
         android:textIsSelectable="false" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txt_Test"
+        android:layout_alignBottom="@+id/editText"
+        android:layout_alignStart="@+id/btn_submit"
+        android:textSize="20dp"
+        android:textIsSelectable="false"
+        android:textColor="@android:color/white" />
+
 </RelativeLayout>

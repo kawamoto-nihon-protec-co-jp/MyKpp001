@@ -1,6 +1,5 @@
 package com.example.kpp.mykpp001;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
@@ -11,18 +10,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.data.FreezableUtils;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
-import com.mariux.teleport.lib.TeleportClient;
-
-import java.util.List;
 
 
 public class MyActivity extends FragmentActivity
@@ -33,27 +29,22 @@ public class MyActivity extends FragmentActivity
     private static final String TAG = MyActivity.class.getName();
 
     private String heartRate = "";
+    private String test = "";
     private EditText txtRate;
+    private TextView txtTest;
 
-    TeleportClient teleportClient;
-
-    private static boolean startedWatch = false;
-    private static boolean startedService = false;
-
-    private final Context mContext = null;
-    private boolean mResolvingError = false;
-
-    private static final int REQUEST_RESOLVE_ERROR = 1001;
-
-    public static String rate;
-
+    // ①初期処理(アクティビティの起動時)
+    // 必要なコンポーネントなどを作成するための処理を記述
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
+        // テキストフィールド取得
         txtRate = (EditText) findViewById(R.id.txt_rate);
+        txtTest = (TextView) findViewById(R.id.txt_Test);
 
+        // GoogleApiClientインスタンス
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addConnectionCallbacks(this)
@@ -61,36 +52,56 @@ public class MyActivity extends FragmentActivity
                 .addApi(Wearable.API)
                 .build();
 
+        // ボタン取得
         Button sendButton = (Button) findViewById(R.id.btn_submit);
+        // ボタン押下時処理登録
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendHealthData();
             }
         });
-
     }
 
+    // ②アクティビティが表示されたとき
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
+    }
+
+    // ③アクティビティとユーザーとのやり取りが可能になるとき
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    // 送信ボタン押下時処理
     private void sendHealthData() {
         TransData sendData = new TransData();
         Bundle args = new Bundle();
+        // 心拍数セット
         sendData.data = txtRate.getText().toString();
         args.putSerializable("data", sendData);
-        getSupportLoaderManager().initLoader(0, args, this);
+        // Loaderの呼び出し
+        getSupportLoaderManager().restartLoader(0, args, this);
     }
 
+    // loaderが作成されたときに呼び出される
     public Loader<TransData> onCreateLoader(int id, Bundle args) {
         if( null != args ) {
             TransData sendData = (TransData) args.getSerializable("data");
-
+            // HttpAccesser呼び出し
             return new HttpAccesser(this, sendData);
         }
         return null;
     }
 
+    // AsyncTaskLoader(loadInBackground)の処理が終了したら呼び出される
     @Override
     public void onLoadFinished(Loader<TransData> loader, TransData recvData) {
-        // AsyncTaskLoaderの処理が終了したら呼び出される
+        // 受け渡った値の処理
         if(null == recvData) {
             return;
         }
@@ -101,29 +112,18 @@ public class MyActivity extends FragmentActivity
         }
     }
 
+    // loaderがリセットされた時に呼び出される。
     @Override
     public void onLoaderReset(Loader<TransData> loader) {
+        Log.d(TAG, "onLoaderReset");
         // AsyncTaskLoaderが破棄されるときに呼び出される
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-            Wearable.DataApi.removeListener(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
-        }
-    }
-
+    // Google Play services接続時に呼び出される
     @Override
     public void onConnected(Bundle bundle) {
         Log.d(TAG, "onConnected");
+        // Listenerを登録する
         Wearable.DataApi.addListener(mGoogleApiClient, this);
     }
 
@@ -132,30 +132,41 @@ public class MyActivity extends FragmentActivity
         Log.d(TAG, "onConnectionSuspended");
     }
 
+    // Google Play services接続が失敗したときの処理
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.e(TAG, "onConnectionFailed: " + connectionResult);
     }
 
+    // データが更新時呼び出される
     @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart");
-
-//        if (!mResolvingError) {
-//            mGoogleApiClient.connect();
-//        }
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d(TAG, "onDataChanged");
+        for (DataEvent event : dataEvents) {
+            // データが消された時
+            if (event.getType() == DataEvent.TYPE_DELETED) {
+                Log.d(TAG, "DataItem deleted: " + event.getDataItem().getUri());
+            // データが変わった時
+            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
+                Log.d(TAG, "DataItem changed: " + event.getDataItem().getUri());
+                // DataItemsから取得
+                DataMapItem item = DataMapItem.fromDataItem(event.getDataItem());
+                heartRate = item.getDataMap().getString("hert_rate");
+                test = item.getDataMap().getString("test");
+                Log.d(TAG, "hert_rate :" + heartRate);
+                Log.d(TAG, "test :" + test);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        txtRate.setText(heartRate);
+                        txtTest.setText(test);
+                    }
+                });
+            }
+        }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-//        if (!mResolvingError) {
-//            Wearable.DataApi.removeListener(mGoogleApiClient, this);
-//            mGoogleApiClient.disconnect();
-//        }
-    }
-
+    // オプションメニューの作成
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -163,6 +174,7 @@ public class MyActivity extends FragmentActivity
         return true;
     }
 
+    // メニューのアイテムが押された時に呼ばれる
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -172,31 +184,23 @@ public class MyActivity extends FragmentActivity
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
+    // ④別のActivityが開始されている時(アクティビティが前面でなくなる前)
     @Override
-    public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.d(TAG, "onDataChanged");
-        final List<DataEvent> events = FreezableUtils.freezeIterable(dataEvents);
-        for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_DELETED) {
-                Log.d(TAG, "DataItem deleted: " + event.getDataItem().getUri());
-            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
-                Log.d(TAG, "DataItem changed: " + event.getDataItem().getUri());
-                DataMapItem item = DataMapItem.fromDataItem(event.getDataItem());
-                Log.d(TAG, "item value 2");
-                heartRate = item.getDataMap().getString("hert_rate");
-                Log.d(TAG, "hert_rate :" + heartRate);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        txtRate.setText(heartRate);
-                    }
-                });
-
-            }
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            // Listenerを削除する
+            Wearable.DataApi.removeListener(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
         }
+    }
+
+    // ⑤Activityが終了(アクティビティが不可視になった後)
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 }
