@@ -5,8 +5,6 @@ package com.example.kpp.mykpp001;
  */
 
 import android.app.ListActivity;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -16,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.kpp.mykpp001.dao.HeartRateDao;
+import com.example.kpp.mykpp001.entity.HeartRateEntitty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,25 +33,19 @@ public class RateRirekiActivity extends ListActivity {
         setContentView(R.layout.rate_rireki);
 
         //DB接続
-        MySQLiteOpenHelper helper = new MySQLiteOpenHelper(this);
-        SQLiteDatabase db = helper.getReadableDatabase();
-        Cursor cursor = db.query(HeartRateDao.TABLE_NAME, new String[] {"_id", "heart_rate", "create_date"}, null, null, null, null, "_id DESC");
+        HeartRateDao dao = new HeartRateDao(this);
+        dao.open();
+        List<HeartRateEntitty> datas = dao.findAllOrderByIdDesc();
+        dao.close();
 
         //ListView初期化
-        List<String> sampleList = new ArrayList<String>();
-//        ListView list_rate = (ListView)findViewById(R.id.android.list);
+        List<String> views = new ArrayList<String>();
 
-        boolean isEof = cursor.moveToFirst();
-        while(isEof){
-//            adapter.add(cursor.getString(1));
-            sampleList.add("    " + cursor.getString(2) + "        " + cursor.getString(1));
-            isEof = cursor.moveToNext();
+        for (HeartRateEntitty entity : datas) {
+            views.add("    " + entity.createDate + "        " + entity.heartRate);
         }
-        adapter = new ArrayAdapter<String>(this, R.layout.rate_list,sampleList);
 
-        //DBクローズ
-        cursor.close();
-        db.close();
+        adapter = new ArrayAdapter<String>(this, R.layout.rate_list, views);
 
         this.setListAdapter(adapter);
 

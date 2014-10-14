@@ -2,10 +2,8 @@ package com.example.kpp.mykpp001;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -29,8 +27,6 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 public class MyActivity extends Activity
@@ -101,12 +97,6 @@ public class MyActivity extends Activity
                 latch.countDown();
             }
         });
-
-        //DB接続
-        MySQLiteOpenHelper helper = new MySQLiteOpenHelper(this);
-        SQLiteDatabase db = helper.getReadableDatabase();
-        mydb = db;
-        Cursor cursor = db.query(HeartRateDao.TABLE_NAME, new String[] {"_id", "heart_rate", "create_date"}, null, null, null, null, "_id DESC");
 
         // SensorManagerのインスタンス
         sensorManager = ((SensorManager)getSystemService(SENSOR_SERVICE));
@@ -184,18 +174,15 @@ public class MyActivity extends Activity
                 e.putString("rate",txtRate.getText().toString());
                 e.commit();
 
-                ContentValues values = new ContentValues();
-                values.put("heart_rate", txtRate.getText().toString());
-                // 現在の時刻を取得
-                Date date = new Date();
-                // 表示形式を設定
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss");
-                String sysdate = sdf.format(date);
-                values.put("create_date", sysdate);
-                mydb.insert(HeartRateDao.TABLE_NAME, null, values);
+                // 心拍数の測定結果登録
+                HeartRateDao dao = new HeartRateDao(this);
+                dao.open();
+                dao.insert(txtRate.getText().toString());
+                dao.close();
 
                 // ダイアログ終了
                 endDialog();
+
                 // センサー処理の停止
                 sensorManager.unregisterListener(this, this.sensor);
             }

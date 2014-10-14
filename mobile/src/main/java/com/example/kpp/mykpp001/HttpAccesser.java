@@ -16,7 +16,7 @@ import java.net.URL;
  */
 public class HttpAccesser extends AsyncTaskLoader<TransData> {
     private final static String SERVER_URL = "http://54.64.73.55:8000/jersey2_sample/admin/putMessage";
-    // private final static String SERVER_URL = "http://192.168.0.23:8080/jersey2_sample/admin/putMessage";
+//    private final static String SERVER_URL = "http://192.168.0.23:8080/jersey2_sample/admin/putMessage";
     private final static String ENCODE = "UTF-8";
 
     private TransData mSendData = null;                     // 送信データ
