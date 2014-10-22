@@ -1,5 +1,6 @@
 package com.example.kpp.mykpp001;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
@@ -29,9 +30,12 @@ public class MyActivity extends FragmentActivity
     private static final String TAG = MyActivity.class.getName();
 
     private String heartRate = "";
+    private String assayDate = "";
     private String test = "";
     private EditText txtRate;
     private TextView txtTest;
+    private EditText txtUserId;
+    private SharedPreferences pref;
 
     // ①初期処理(アクティビティの起動時)
     // 必要なコンポーネントなどを作成するための処理を記述
@@ -40,9 +44,13 @@ public class MyActivity extends FragmentActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
+        // SharedPreferencesのインスタンス
+        pref = getSharedPreferences("pre_save",MODE_PRIVATE);
+
         // テキストフィールド取得
         txtRate = (EditText) findViewById(R.id.txt_rate);
         txtTest = (TextView) findViewById(R.id.txt_Test);
+        txtUserId = (EditText) findViewById(R.id.txt_userid);
 
         // GoogleApiClientインスタンス
         mGoogleApiClient = new GoogleApiClient
@@ -82,7 +90,9 @@ public class MyActivity extends FragmentActivity
         TransData sendData = new TransData();
         Bundle args = new Bundle();
         // 心拍数セット
-        sendData.data = txtRate.getText().toString();
+        sendData.userId = txtUserId.getText().toString();
+        sendData.heartRate = txtRate.getText().toString();
+        sendData.assayDate = pref.getString("assayDate","");
         args.putSerializable("data", sendData);
         // Loaderの呼び出し
         getSupportLoaderManager().restartLoader(0, args, this);
@@ -108,7 +118,7 @@ public class MyActivity extends FragmentActivity
         else {
             EditText editText;
             editText = (EditText) findViewById(R.id.editText);
-            editText.setText(recvData.data);
+            editText.setText(recvData.heartRate);
         }
     }
 
@@ -152,14 +162,20 @@ public class MyActivity extends FragmentActivity
                 // DataItemsから取得
                 DataMapItem item = DataMapItem.fromDataItem(event.getDataItem());
                 heartRate = item.getDataMap().getString("hert_rate");
-                test = item.getDataMap().getString("test");
+                assayDate = item.getDataMap().getString("assay_date");
+                // データ保存(プリファレンス)
+                SharedPreferences.Editor e = pref.edit();
+                e.putString("assayDate", assayDate);
+                e.commit();
+
+//                test = item.getDataMap().getString("test");
                 Log.d(TAG, "hert_rate :" + heartRate);
-                Log.d(TAG, "test :" + test);
+                Log.d(TAG, "test :" + assayDate);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         txtRate.setText(heartRate);
-                        txtTest.setText(test);
+                        txtTest.setText(assayDate);
                     }
                 });
             }

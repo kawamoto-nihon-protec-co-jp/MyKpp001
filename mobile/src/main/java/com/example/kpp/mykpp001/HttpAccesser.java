@@ -80,6 +80,7 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
             String json = new String(buffer);
             Log.d(TAG, "----------success20141018");
             recvData = gson.fromJson(json, TransData.class);
+            Log.d(TAG, "----------status" + recvData.status);
             Log.d(TAG, "----------success20141018");
         } catch(Exception e) {
             e.printStackTrace();

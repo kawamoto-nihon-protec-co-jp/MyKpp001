@@ -27,6 +27,8 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 public class MyActivity extends Activity
@@ -34,6 +36,8 @@ public class MyActivity extends Activity
 
     private static final String TAG = MyActivity.class.getName();
     static SQLiteDatabase mydb;
+
+    public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private TextView txtRate;
     private TextView txtPreRate;
@@ -169,15 +173,22 @@ public class MyActivity extends Activity
                 );
                 txtRate.setText(String.valueOf((int)event.values[0]));
 
+                // 現在の時刻を取得
+                Date date = new Date();
+                // 日付形式を設定
+                SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+                String sysdate = sdf.format(date);
+
                 // データ保存(プリファレンス)
                 SharedPreferences.Editor e = pref.edit();
-                e.putString("rate",txtRate.getText().toString());
+                e.putString("rate", txtRate.getText().toString());
+                e.putString("createDate", sysdate);
                 e.commit();
 
                 // 心拍数の測定結果登録
                 HeartRateDao dao = new HeartRateDao(this);
                 dao.open();
-                dao.insert(txtRate.getText().toString());
+                dao.insert(txtRate.getText().toString(), sysdate);
                 dao.close();
 
                 // ダイアログ終了
@@ -203,8 +214,9 @@ public class MyActivity extends Activity
         // DataMapインスタンスを生成する
         PutDataMapRequest dataMap = PutDataMapRequest.create("/create");
         dataMap.getDataMap().putString("hert_rate", txtRate.getText().toString());
-        cnt++;
-        dataMap.getDataMap().putString("test", "tomomi" + cnt);
+        dataMap.getDataMap().putString("assay_date", pref.getString("createDate","No Data"));
+//        cnt++;
+//        dataMap.getDataMap().putString("test", "tomomi" + cnt);
         // データを送信する
         PutDataRequest request = dataMap.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);

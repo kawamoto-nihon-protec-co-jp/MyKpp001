@@ -7,19 +7,41 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".MyActivity"
-    android:background="@android:color/black">
+    android:background="#c0fec0">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="心拍数を表示"
+        android:text="@string/mrk_heart"
+        android:id="@+id/txt_msg1"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="45dp"
+        android:layout_alignTop="@+id/txt_msg"
+        android:layout_toStartOf="@+id/txt_msg" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/txt_title"
         android:id="@+id/txt_msg"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:layout_marginTop="79dp"
         android:textSize="45dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/mrk_heart"
+        android:id="@+id/txt_msg2"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="45dp"
+        android:layout_alignTop="@+id/txt_msg"
+        android:layout_toEndOf="@+id/txt_msg" />
 
     <ImageView android:id="@+id/titleDividerTop"
         android:layout_width="fill_parent"
@@ -37,12 +59,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/txt_rate"
         android:textSize="60dp"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textIsSelectable="false"
         android:layout_alignParentStart="false"
         android:layout_alignParentEnd="false"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/titleDividerTop" />
+        android:layout_below="@+id/titleDividerTop"/>
 
     <ImageView android:id="@+id/titleDividerUnder"
         android:layout_width="fill_parent"
@@ -54,13 +76,38 @@
         android:layout_below="@+id/txt_rate"
         android:layout_alignParentStart="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/txt_tUserId"
+        android:id="@+id/txt_tUserId"
+        android:textColor="@android:color/black"
+        android:textSize="30dp"
+        android:layout_below="@+id/titleDividerUnder"
+        android:layout_alignEnd="@+id/txt_msg1"
+        android:layout_marginTop="40dp" />
+
+    <EditText
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/txt_userid"
+        android:textSize="30dp"
+        android:textColor="@android:color/black"
+        android:background="@android:color/white"
+        android:layout_toEndOf="@+id/txt_msg1"
+        android:autoText="true"
+        android:layout_alignTop="@+id/txt_tUserId" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/btn_send"
+        android:shape="ring"
         android:id="@+id/btn_submit"
         android:textSize="40dp"
-        android:background="@android:color/darker_gray"
+        android:textColor="@android:color/white"
+        android:background="@drawable/button_design"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
@@ -71,9 +118,9 @@
         android:layout_below="@+id/btn_submit"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="74dp"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="80dp"
-        android:textIsSelectable="false" />
+        android:textIsSelectable="false"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -84,5 +131,4 @@
         android:textSize="20dp"
         android:textIsSelectable="false"
         android:textColor="@android:color/white" />
-
 </RelativeLayout>
