@@ -2,6 +2,7 @@ package com.example.kpp.mykpp001;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -16,12 +17,16 @@ import java.net.URL;
  */
 
 public class HttpAccesser extends AsyncTaskLoader<TransData> {
-    private final static String SERVER_URL = "http://54.64.73.55:8000/jersey2_sample/admin/putMessage";
+//    private final static String SERVER_URL = "http://54.64.73.55:8000/jersey2_sample/admin/putMessage";
 //    private final static String SERVER_URL = "http://192.168.0.23:8080/jersey2_sample/admin/putMessage";
+//    private final static String SERVER_URL = "http://192.168.0.23:8080/testapp/api/products/putMessage";
+    private final static String SERVER_URL = "http://54.64.73.55/testapp/api/products/putMessage";
     private final static String ENCODE = "UTF-8";
 
     private TransData mSendData = null;                     // 送信データ
     private HttpURLConnection mHttpConnection = null;       // HTTP通信
+
+    private static final String TAG = HttpAccesser.class.getName();
 
     public HttpAccesser(Context context, TransData sendData) {
         super(context);
@@ -57,7 +62,7 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
         try {
             // 接続
             mHttpConnection.connect();
-
+            Log.d(TAG, "----------success20141018");
             // データを出力
             out = mHttpConnection.getOutputStream();
             Gson gson = new Gson();
@@ -65,7 +70,7 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
             PrintStream ps = new PrintStream(out);
             ps.print(obj2);
             ps.close();
-
+            Log.d(TAG, "----------success20141018");
             // レスポンスを取得
             in = mHttpConnection.getInputStream();
             int size = in.available();
@@ -73,11 +78,12 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
             in.read(buffer);
             in.close();
             String json = new String(buffer);
-
+            Log.d(TAG, "----------success20141018");
             recvData = gson.fromJson(json, TransData.class);
-
+            Log.d(TAG, "----------success20141018");
         } catch(Exception e) {
             e.printStackTrace();
+            Log.d(TAG, "----------exception20141018");
         } finally {
             try {
                 if(in != null) {

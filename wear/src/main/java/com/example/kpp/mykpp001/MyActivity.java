@@ -167,7 +167,7 @@ public class MyActivity extends Activity
             if (event.values[0] > 0) {
                 Log.d(TAG, "sensor event: " + event.accuracy + " = " + event.values[0] + txtPreRate
                 );
-                txtRate.setText(String.valueOf(event.values[0]));
+                txtRate.setText(String.valueOf((int)event.values[0]));
 
                 // データ保存(プリファレンス)
                 SharedPreferences.Editor e = pref.edit();
