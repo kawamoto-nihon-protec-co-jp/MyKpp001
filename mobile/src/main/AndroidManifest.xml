@@ -3,6 +3,8 @@
     package="com.example.kpp.mykpp001" >
 
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- GPS機能 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /><!-- GPS機能(ネットワークの位置情報) -->
 
     <application
         android:allowBackup="true"

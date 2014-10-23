@@ -1,6 +1,7 @@
 package com.example.kpp.mykpp001;
 
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
@@ -37,6 +38,15 @@ public class MyActivity extends FragmentActivity
     private EditText txtUserId;
     private SharedPreferences pref;
 
+    /** 測位用クラス */
+    private CustomLocationManager mCustomLocationManager;
+    private static final int LOCATION_TIME_OUT = 5000;
+    /** 測位情報 */
+    public String strIdo = "";			// 緯度(onCompleteで取得)
+    public String strKeido = "";		// 経度
+    public Long longJikanGPS = (long) 0;// 時間(GPS用)
+    TextView tvGps;		// GPS表示用
+
     // ①初期処理(アクティビティの起動時)
     // 必要なコンポーネントなどを作成するための処理を記述
     @Override
@@ -69,12 +79,17 @@ public class MyActivity extends FragmentActivity
                 sendHealthData();
             }
         });
+
+        // 測位用クラス
+        mCustomLocationManager = new CustomLocationManager(this);
     }
 
     // ②アクティビティが表示されたとき
     @Override
     protected void onStart() {
         super.onStart();
+        //GPS測位開始
+        getCurrentPoint();
         Log.d(TAG, "onStart");
     }
 
@@ -92,7 +107,10 @@ public class MyActivity extends FragmentActivity
         // 心拍数セット
         sendData.userId = txtUserId.getText().toString();
         sendData.heartRate = txtRate.getText().toString();
-        sendData.assayDate = pref.getString("assayDate","");
+        sendData.assayDate = pref.getString("assayDate", "");
+        sendData.gpsLatitude = mCustomLocationManager.strIdoC;
+        sendData.gpsLongitude = mCustomLocationManager.strKeidoC;
+
         args.putSerializable("data", sendData);
         // Loaderの呼び出し
         getSupportLoaderManager().restartLoader(0, args, this);
@@ -180,6 +198,27 @@ public class MyActivity extends FragmentActivity
                 });
             }
         }
+    }
+
+    //GPS測位開始
+    private void getCurrentPoint(){
+        mCustomLocationManager.getNowLocationData(LOCATION_TIME_OUT, new CustomLocationManager.LocationCallback() {
+
+            @Override
+            public void onTimeout() {
+                //Toast.makeText(getApplicationContext(), R.string.toast_timeout, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onComplete(Location location) {
+                strIdo = Double.toString(location.getLatitude());	// 緯度
+                strKeido = Double.toString(location.getLongitude());// 経度
+                longJikanGPS = location.getTime();					// 時間
+
+                //tvGps.setTextColor(Color.rgb(255, 165, 0));
+            }
+        });
+
     }
 
     // オプションメニューの作成
