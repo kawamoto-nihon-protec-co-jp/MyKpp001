@@ -108,8 +108,21 @@
         android:textSize="40dp"
         android:textColor="@android:color/white"
         android:background="@drawable/button_design"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/txt_userid"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txt_Message"
+        android:layout_below="@+id/btn_submit"
+        android:layout_alignStart="@+id/btn_submit"
+        android:textSize="20dp"
+        android:textIsSelectable="false"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="20dp"
+        android:text="メッセージ" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -122,13 +135,4 @@
         android:textSize="80dp"
         android:textIsSelectable="false"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/txt_Test"
-        android:layout_alignBottom="@+id/editText"
-        android:layout_alignStart="@+id/btn_submit"
-        android:textSize="20dp"
-        android:textIsSelectable="false"
-        android:textColor="@android:color/white" />
 </RelativeLayout>

@@ -7,62 +7,42 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 
+/**
+ * GPS処理クラス
+ * @author T.Kawamoto
+ * @version 1.0
+ */
 public class CustomLocationManager implements LocationListener {
+    // 緯度
+    public String strIdoC = "";
+    // 経度
+    public String strKeidoC = "";
+    // 時間
+    public Long longJikan = (long) 0;
+
+    // GPSタイムアウト時間
+    private static final int GPS_TIME_OUT = 180000;
     private LocationManager mLocationManager;
     private LocationCallback mLocationCallback;
-    private Handler mHandler = new Handler();
-    private static final int NETWORK_TIMEOUT = 5000; // Wi-Fiタイムアウト時間
-    private static final int GPS_TIME_OUT = 180000;  // GPSタイムアウト時間
 
-    public String strIdoC = "";             // 緯度
-    public String strKeidoC = "";           // 経度
-    public Long longJikan = (long) 0;       // 時間
+    private Handler mHandler = new Handler();
 
 
     public CustomLocationManager(Context context) {
         mLocationManager = (LocationManager) context.getSystemService(Activity.LOCATION_SERVICE);
     }
 
-    public void getNowLocationData(int delayMillis, LocationCallback locationCallback) {
+    /**
+     * GPS情報の取得
+     * @param delayMillis
+     * @param locationCallback
+     */
+    public void doNowLocationData(int delayMillis, LocationCallback locationCallback) {
         this.mLocationCallback = locationCallback;
-        //mHandler.postDelayed(gpsTimeOutRun, delayMillis);
-        //startLocation(LocationManager.GPS_PROVIDER);
         mHandler.postDelayed(networkTimeOutRun, delayMillis);
         startLocation(LocationManager.NETWORK_PROVIDER);
     }
-
-//del 2013.07.02 未使用のため削除
-//     private static final int mAccuracy = Criteria.ACCURACY_COARSE;// 位置情報取得の精度
-//     private static final int mBearingAccuracy = Criteria.NO_REQUIREMENT;// 方位精度
-//     private static final int mHorizontalAccuracy = Criteria.ACCURACY_LOW;// 緯度経度の取得
-//     private static final int mVerticalAccuracy = Criteria.NO_REQUIREMENT;// 高度の取得
-//     private static final int mPowerLevel = Criteria.POWER_HIGH;// 電力消費レベルの設定
-//     private static final int mSpeedAccuracy = Criteria.NO_REQUIREMENT;// 速度の精度
-//     private static final boolean isAltitude = false;// 高度の取得の有無
-//     private static final boolean isBearing = false;// 方位を取得の有無
-//     private static final boolean isCostAllowed = false;// 位置情報取得に関して金銭的なコストの許可
-//     private static final boolean isSpeed = false;// 速度を出すかどうか
-//
-//     private String getBestProvider(boolean enabledOnly) {
-//
-//     Criteria criteria = new Criteria();
-//
-//     criteria.setAccuracy(mAccuracy);
-//     criteria.setBearingAccuracy(mBearingAccuracy);
-//     criteria.setAltitudeRequired(isAltitude);
-//     criteria.setBearingRequired(isBearing);
-//     criteria.setCostAllowed(isCostAllowed);
-//     criteria.setHorizontalAccuracy(mHorizontalAccuracy);
-//     criteria.setPowerRequirement(mPowerLevel);
-//     criteria.setSpeedAccuracy(mSpeedAccuracy);
-//     criteria.setSpeedRequired(isSpeed);
-//     criteria.setVerticalAccuracy(mVerticalAccuracy);
-//
-//     return mLocationManager.getBestProvider(criteria, enabledOnly);
-//
-//     }
 
     private Runnable gpsTimeOutRun = new Runnable() {
 
@@ -85,29 +65,22 @@ public class CustomLocationManager implements LocationListener {
         }
     };
 
-    public boolean checkGpsMode() {
-        boolean gps = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean network = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        return gps || network;
-    }
-
-    public void startLocation(String provider) {
+    private void startLocation(String provider) {
         mLocationManager.requestLocationUpdates(provider, 0, 0, this);
     }
 
-    public void removeUpdate() {
+    private void removeUpdate() {
         mLocationManager.removeUpdates(this);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-Log.i("DEBUG", "CustomLocationManager.onLocationChanged");
-		strIdoC = Double.toString(location.getLatitude());// 緯度
-		strKeidoC = Double.toString(location.getLongitude());// 経度
-		longJikan = location.getTime();// 時間
+        strIdoC = Double.toString(location.getLatitude());// 緯度
+        strKeidoC = Double.toString(location.getLongitude());// 経度
+        longJikan = location.getTime();// 時間
 
-    	mHandler.removeCallbacks(gpsTimeOutRun);
-		mHandler.removeCallbacks(networkTimeOutRun);
+        mHandler.removeCallbacks(gpsTimeOutRun);
+        mHandler.removeCallbacks(networkTimeOutRun);
         if (this.mLocationCallback != null) {
             this.mLocationCallback.onComplete(location);
         }

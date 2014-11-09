@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.wearable.view.WearableListView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -14,11 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by kawamoto on 2014/09/30.
+ * メニューActivity（最初に表示される画面）
+ * @author T.Kawamoto
+ * @version 1.0
  */
 public class MenuActivity extends Activity implements WearableListView.ClickListener{
 
-    // 初期処理
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,18 +32,21 @@ public class MenuActivity extends Activity implements WearableListView.ClickList
         listView.setClickListener(this);
     }
 
-    // メニュー押下時
+    /*
+     * メニュー押下時
+     */
     @Override
     public void onClick(WearableListView.ViewHolder viewHolder) {
-        Log.d("TAG", "onClick");
+//        int i = (Integer)viewHolder.itemView.getTag();
         // Activity呼び出し
-        Intent intent = new Intent(this, MyActivity.class);
-        startActivity(intent);
+//        if (i == 0) {
+            Intent intent = new Intent(this, MyActivity.class);
+            startActivity(intent);
+//        }
     }
 
     @Override
     public void onTopEmptyRegionClick() {
-        Log.d("TAG", "onTopEmptyRegionClick");
     }
 
     private static class Adapter extends WearableListView.Adapter {
@@ -58,14 +61,18 @@ public class MenuActivity extends Activity implements WearableListView.ClickList
             this.labels = labels;
         }
 
-        // 表示する要素のViewを作成
+        /*
+         * 表示する要素のViewを作成
+         */
         @Override
         public WearableListView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             return new WearableListView.ViewHolder(
                     layoutInflater.inflate(R.layout.list_item, null));
         }
 
-        // Viewにリストをセット
+        /*
+         * Viewにリストをセット
+         */
         @Override
         public void onBindViewHolder(WearableListView.ViewHolder viewHolder, int i) {
             TextView textView = (TextView)viewHolder.itemView.findViewById(R.id.label);
@@ -73,7 +80,9 @@ public class MenuActivity extends Activity implements WearableListView.ClickList
             viewHolder.itemView.setTag(i);
         }
 
-        // 要素数を取得
+        /*
+         * 要素数を取得
+         */
         @Override
         public int getItemCount() {
             return labels.size();

@@ -13,20 +13,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Created by kawamoto on 2014/10/06.
+ * WebAPIとの通信クラス
+ * @author T.Kawamoto
+ * @version 1.0
  */
-
 public class HttpAccesser extends AsyncTaskLoader<TransData> {
-//    private final static String SERVER_URL = "http://54.64.73.55:8000/jersey2_sample/admin/putMessage";
+    private static final String TAG = HttpAccesser.class.getName();
+
+    //    private final static String SERVER_URL = "http://54.64.73.55:8000/jersey2_sample/admin/putMessage";
 //    private final static String SERVER_URL = "http://192.168.0.23:8080/jersey2_sample/admin/putMessage";
 //    private final static String SERVER_URL = "http://192.168.0.23:8080/testapp/api/products/putMessage";
     private final static String SERVER_URL = "http://54.64.73.55/testapp/api/products/putMessage";
     private final static String ENCODE = "UTF-8";
 
     private TransData mSendData = null;                     // 送信データ
-    private HttpURLConnection mHttpConnection = null;       // HTTP通信
 
-    private static final String TAG = HttpAccesser.class.getName();
+    private HttpURLConnection mHttpConnection = null;       // HTTP通信
 
     public HttpAccesser(Context context, TransData sendData) {
         super(context);

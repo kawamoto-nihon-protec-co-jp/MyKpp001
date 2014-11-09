@@ -1,9 +1,5 @@
 package com.example.kpp.mykpp001;
 
-/**
- * Created by kawamoto on 2014/10/11.
- */
-
 import android.app.ListActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -19,14 +15,19 @@ import com.example.kpp.mykpp001.entity.HeartRateEntitty;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 心拍数履歴
+ * @author T.Kawamoto
+ * @version 1.0
+ */
 public class RateRirekiActivity extends ListActivity {
-
+    // アダプター
     static ArrayAdapter<String> adapter;
-
+    // リスト
     private ListView listview;
+    // 削除ボタン
     private Button delbtn;
 
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,15 +39,12 @@ public class RateRirekiActivity extends ListActivity {
         List<HeartRateEntitty> datas = dao.findAllOrderByIdDesc();
         dao.close();
 
-        //ListView初期化
+        //ListView処理
         List<String> views = new ArrayList<String>();
-
         for (HeartRateEntitty entity : datas) {
             views.add("    " + entity.createDate + "        " + entity.heartRate);
         }
-
         adapter = new ArrayAdapter<String>(this, R.layout.rate_list, views);
-
         this.setListAdapter(adapter);
 
         //ボタンを登録
@@ -54,7 +52,9 @@ public class RateRirekiActivity extends ListActivity {
         delbtn.setOnClickListener(new ClickListener());
     }
 
-    //ボタンクリック時のリスナ
+    /*
+     * ボタンクリック時のリスナ
+     */
     class ClickListener implements OnClickListener {
         public void onClick(View v) {
             //テキストのインスタンスを取得

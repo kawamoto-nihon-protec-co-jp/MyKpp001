@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
@@ -31,27 +31,41 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * 心拍数測定Activity
+ * @author T.Kawamoto
+ * @version 1.0
+ */
 public class MyActivity extends Activity
         implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = MyActivity.class.getName();
-    static SQLiteDatabase mydb;
-
+    // 日付フォーマット
     public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
-    private TextView txtRate;
-    private TextView txtPreRate;
+    // SENSOR TYPE(HEAR RATE)
     private static final int SENSOR_TYPE_HEARTRATE = 65562;
-    private Sensor sensor;
+    // Sensor Manager
     private SensorManager sensorManager;
-    private CountDownLatch latch;
-    private GoogleApiClient mGoogleApiClient;
-    private SharedPreferences pref;
-    private int cnt = 0;
+    // Sensor
+    private Sensor sensor;
+    // VIBRATOR
+    private Vibrator vib;
+    // VIBRATOR Pattern
+    private long pattern[] = {1000, 1000}; // OFF/ON/OFF/ON...
 
+    // 心拍数
+    private TextView txtRate;
+    // 前回の心拍数
+    private TextView txtPreRate;
+    // 操作完了 同期支援
+    private CountDownLatch latch;
+    // Google API Client
+    private GoogleApiClient mGoogleApiClient;
+    // データ保存
+    private SharedPreferences pref;
+    // ダイアログ
     private ProgressDialog dialog;
 
-    // ①初期処理
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +120,9 @@ public class MyActivity extends Activity
         sensorManager = ((SensorManager)getSystemService(SENSOR_SERVICE));
         sensor = sensorManager.getDefaultSensor(SENSOR_TYPE_HEARTRATE); // using Sensor Lib2 (Samsung Gear Live)
 
+        // VIBRATOR
+        vib = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+
         // GoogleApiClientインスタンス
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -115,7 +132,6 @@ public class MyActivity extends Activity
                 .build();
     }
 
-    // ②アクティビティが表示されたとき
     @Override
     protected void onStart() {
         super.onStart();
@@ -123,7 +139,6 @@ public class MyActivity extends Activity
         sensorManager.registerListener(this, this.sensor, 3);
     }
 
-    // ③アクティビティとユーザーとのやり取りが可能になるとき
     @Override
     protected void onResume() {
         super.onResume();
@@ -131,7 +146,9 @@ public class MyActivity extends Activity
         Log.d(TAG, "onResume");
     }
 
-    // ダイアログ表示
+    /*
+     * ダイアログ表示
+     */
     private void startDialog() {
         dialog = new ProgressDialog(this);
         dialog.setTitle("測定中");
@@ -140,7 +157,9 @@ public class MyActivity extends Activity
         dialog.show();
     }
 
-    // ダイアログ終了
+    /*
+     * ダイアログ終了
+     */
     private void endDialog() {
         dialog.dismiss();
         dialog = null;
@@ -159,13 +178,18 @@ public class MyActivity extends Activity
         }
     }
 
-    // センサーの値が変わったときに呼び出される(自動生成されるメソッド)
+    /*
+     * センサーの値が変わったときに呼び出される(自動生成されるメソッド)
+     */
     @Override
     public void onSensorChanged(SensorEvent event) {
         try {
             // 処理待ち(ラッチのカウントダウンがゼロになるまで現在のスレッドを待機させます。)
             // カウントがゼロに達すると、メソッドは値 true で復帰します
             latch.await();
+
+            // VIBRATOR実行
+            vib.vibrate( pattern, -1);
 
             // 心拍数計測値セット
             if (event.values[0] > 0) {
@@ -203,20 +227,23 @@ public class MyActivity extends Activity
         }
     }
 
-    // センサー精度の変更を行うときに利用(自動生成されるメソッド)
+    /*
+     * センサー精度の変更を行うときに利用(自動生成されるメソッド)
+     */
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
 
-    // 値の送信（DataItems）
+    /*
+     * 値の送信（DataItems）
+     */
     private void sendHertRate(){
         // DataMapインスタンスを生成する
         PutDataMapRequest dataMap = PutDataMapRequest.create("/create");
         dataMap.getDataMap().putString("hert_rate", txtRate.getText().toString());
         dataMap.getDataMap().putString("assay_date", pref.getString("createDate","No Data"));
-//        cnt++;
-//        dataMap.getDataMap().putString("test", "tomomi" + cnt);
+
         // データを送信する
         PutDataRequest request = dataMap.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, request);
@@ -228,7 +255,9 @@ public class MyActivity extends Activity
         });
     }
 
-    // Google Play services接続時に呼び出される
+    /*
+     * Google Play services接続時に呼び出される
+     */
     @Override
     public void onConnected(Bundle bundle) {
         Log.d(TAG, "onConnected");
@@ -239,13 +268,17 @@ public class MyActivity extends Activity
         Log.d(TAG, "onConnectionSuspended");
     }
 
-    // Google Play services接続が失敗したときの処理
+    /*
+     * Google Play services接続が失敗したときの処理
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.e(TAG, "onConnectionFailed: " + connectionResult);
     }
 
-    // ④別のActivityが開始されている時
+    /*
+     * 別のActivityが開始されている時
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -254,12 +287,13 @@ public class MyActivity extends Activity
         }
     }
 
-    // ⑤Activityが終了
+    /*
+     * Activityが終了
+     */
     @Override
     protected void onStop() {
         super.onStop();
         // センサー処理の停止
         sensorManager.unregisterListener(this);
-        cnt = 0;
     }
 }

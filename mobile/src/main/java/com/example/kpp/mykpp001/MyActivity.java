@@ -22,33 +22,37 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
-
+/**
+ * 心拍数情報の追加・編集Activity
+ * @author T.Kawamoto
+ * @version 1.0
+ */
 public class MyActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener, LoaderManager.LoaderCallbacks<TransData> {
 
-    private GoogleApiClient mGoogleApiClient;
-
     private static final String TAG = MyActivity.class.getName();
-
-    private String heartRate = "";
-    private String assayDate = "";
-    private String test = "";
+    // Google API Client
+    private GoogleApiClient mGoogleApiClient;
+    // 心拍数
     private EditText txtRate;
-    private TextView txtTest;
+    private String heartRate = "";
+    // 測定日
+    private String assayDate = "";
+    // ユーザ
     private EditText txtUserId;
+    // メッセージ
+    private TextView txtMessage;
+    // データ保存
     private SharedPreferences pref;
 
-    /** 測位用クラス */
+    // 測位用クラス
     private CustomLocationManager mCustomLocationManager;
     private static final int LOCATION_TIME_OUT = 5000;
-    /** 測位情報 */
-    public String strIdo = "";			// 緯度(onCompleteで取得)
-    public String strKeido = "";		// 経度
+    //  測位情報
+    public String strIdo = "";// 緯度(onCompleteで取得)
+    public String strKeido = "";// 経度
     public Long longJikanGPS = (long) 0;// 時間(GPS用)
-    TextView tvGps;		// GPS表示用
 
-    // ①初期処理(アクティビティの起動時)
-    // 必要なコンポーネントなどを作成するための処理を記述
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,8 +63,8 @@ public class MyActivity extends FragmentActivity
 
         // テキストフィールド取得
         txtRate = (EditText) findViewById(R.id.txt_rate);
-        txtTest = (TextView) findViewById(R.id.txt_Test);
         txtUserId = (EditText) findViewById(R.id.txt_userid);
+        txtMessage = (TextView) findViewById(R.id.txt_Message);
 
         // GoogleApiClientインスタンス
         mGoogleApiClient = new GoogleApiClient
@@ -84,27 +88,27 @@ public class MyActivity extends FragmentActivity
         mCustomLocationManager = new CustomLocationManager(this);
     }
 
-    // ②アクティビティが表示されたとき
     @Override
     protected void onStart() {
+        Log.d(TAG, "onStart");
         super.onStart();
         //GPS測位開始
         getCurrentPoint();
-        Log.d(TAG, "onStart");
     }
 
-    // ③アクティビティとユーザーとのやり取りが可能になるとき
     @Override
     protected void onResume() {
         super.onResume();
         mGoogleApiClient.connect();
     }
 
-    // 送信ボタン押下時処理
+    /*
+     * 送信ボタン押下時処理
+     */
     private void sendHealthData() {
         TransData sendData = new TransData();
         Bundle args = new Bundle();
-        // 心拍数セット
+        // 測定結果セット
         sendData.userId = txtUserId.getText().toString();
         sendData.heartRate = txtRate.getText().toString();
         sendData.assayDate = pref.getString("assayDate", "");
@@ -116,7 +120,10 @@ public class MyActivity extends FragmentActivity
         getSupportLoaderManager().restartLoader(0, args, this);
     }
 
-    // loaderが作成されたときに呼び出される
+    /*
+     * loaderが作成されたときに呼び出される
+     */
+    @Override
     public Loader<TransData> onCreateLoader(int id, Bundle args) {
         if( null != args ) {
             TransData sendData = (TransData) args.getSerializable("data");
@@ -126,28 +133,33 @@ public class MyActivity extends FragmentActivity
         return null;
     }
 
-    // AsyncTaskLoader(loadInBackground)の処理が終了したら呼び出される
+    /*
+     * AsyncTaskLoader(loadInBackground)の処理が終了したら呼び出される
+     */
     @Override
     public void onLoadFinished(Loader<TransData> loader, TransData recvData) {
-        // 受け渡った値の処理
-        if(null == recvData) {
-            return;
-        }
-        else {
-            EditText editText;
-            editText = (EditText) findViewById(R.id.editText);
-            editText.setText(recvData.heartRate);
+        EditText editText;
+        editText = (EditText) findViewById(R.id.editText);
+        editText.setText(recvData.heartRate);
+
+        if ("0".equals(recvData.status)) {
+            txtMessage.setText("送信が完了しました！");
+        } else if ("9".equals(recvData.status)) {
+            txtMessage.setText("送信に失敗しました。");
         }
     }
 
-    // loaderがリセットされた時に呼び出される。
+    /*
+     * AsyncTaskLoaderが破棄されるときに呼び出される
+     */
     @Override
     public void onLoaderReset(Loader<TransData> loader) {
         Log.d(TAG, "onLoaderReset");
-        // AsyncTaskLoaderが破棄されるときに呼び出される
     }
 
-    // Google Play services接続時に呼び出される
+    /*
+     * Google Play services接続時に呼び出される
+     */
     @Override
     public void onConnected(Bundle bundle) {
         Log.d(TAG, "onConnected");
@@ -160,13 +172,17 @@ public class MyActivity extends FragmentActivity
         Log.d(TAG, "onConnectionSuspended");
     }
 
-    // Google Play services接続が失敗したときの処理
+    /*
+     * Google Play services接続が失敗したときの処理
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.e(TAG, "onConnectionFailed: " + connectionResult);
     }
 
-    // データが更新時呼び出される
+    /*
+     * データが更新時呼び出される
+     */
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
         Log.d(TAG, "onDataChanged");
@@ -186,55 +202,46 @@ public class MyActivity extends FragmentActivity
                 e.putString("assayDate", assayDate);
                 e.commit();
 
-//                test = item.getDataMap().getString("test");
                 Log.d(TAG, "hert_rate :" + heartRate);
-                Log.d(TAG, "test :" + assayDate);
+                Log.d(TAG, "assayDate :" + assayDate);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         txtRate.setText(heartRate);
-                        txtTest.setText(assayDate);
                     }
                 });
             }
         }
     }
 
-    //GPS測位開始
+    /*
+     * GPS測位開始
+     */
     private void getCurrentPoint(){
-        mCustomLocationManager.getNowLocationData(LOCATION_TIME_OUT, new CustomLocationManager.LocationCallback() {
+        mCustomLocationManager.doNowLocationData(LOCATION_TIME_OUT, new CustomLocationManager.LocationCallback() {
 
             @Override
             public void onTimeout() {
-                //Toast.makeText(getApplicationContext(), R.string.toast_timeout, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onComplete(Location location) {
-                strIdo = Double.toString(location.getLatitude());	// 緯度
+                strIdo = Double.toString(location.getLatitude());// 緯度
                 strKeido = Double.toString(location.getLongitude());// 経度
-                longJikanGPS = location.getTime();					// 時間
-
-                //tvGps.setTextColor(Color.rgb(255, 165, 0));
+                longJikanGPS = location.getTime();// 時間
             }
         });
 
     }
 
-    // オプションメニューの作成
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.my, menu);
         return true;
     }
 
-    // メニューのアイテムが押された時に呼ばれる
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
@@ -242,7 +249,6 @@ public class MyActivity extends FragmentActivity
         return super.onOptionsItemSelected(item);
     }
 
-    // ④別のActivityが開始されている時(アクティビティが前面でなくなる前)
     @Override
     protected void onPause() {
         super.onPause();
@@ -253,7 +259,6 @@ public class MyActivity extends FragmentActivity
         }
     }
 
-    // ⑤Activityが終了(アクティビティが不可視になった後)
     @Override
     protected void onStop() {
         super.onStop();
