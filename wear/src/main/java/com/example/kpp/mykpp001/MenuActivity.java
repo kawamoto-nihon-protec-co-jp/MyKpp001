@@ -49,6 +49,9 @@ public class MenuActivity extends Activity implements WearableListView.ClickList
     public void onTopEmptyRegionClick() {
     }
 
+    /**
+     * Adapter定義
+     */
     private static class Adapter extends WearableListView.Adapter {
 
         private Context context;

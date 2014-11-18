@@ -138,10 +138,6 @@ public class MyActivity extends FragmentActivity
      */
     @Override
     public void onLoadFinished(Loader<TransData> loader, TransData recvData) {
-        EditText editText;
-        editText = (EditText) findViewById(R.id.editText);
-        editText.setText(recvData.heartRate);
-
         if ("0".equals(recvData.status)) {
             txtMessage.setText("送信が完了しました！");
         } else if ("9".equals(recvData.status)) {

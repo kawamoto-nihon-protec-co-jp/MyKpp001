@@ -20,73 +20,78 @@ import java.net.URL;
 public class HttpAccesser extends AsyncTaskLoader<TransData> {
     private static final String TAG = HttpAccesser.class.getName();
 
-    //    private final static String SERVER_URL = "http://54.64.73.55:8000/jersey2_sample/admin/putMessage";
-//    private final static String SERVER_URL = "http://192.168.0.23:8080/jersey2_sample/admin/putMessage";
-//    private final static String SERVER_URL = "http://192.168.0.23:8080/testapp/api/products/putMessage";
-    private final static String SERVER_URL = "http://54.64.73.55/testapp/api/products/putMessage";
-    private final static String ENCODE = "UTF-8";
+//    private final static String SERVER_URL = "http://192.168.0.23:8080/testapp/api/resource/putHealthInfo";
+    private final static String SERVER_URL = "http://54.64.73.55:8000/testapp/api/resource/putHealthInfo";
 
-    private TransData mSendData = null;                     // 送信データ
-
-    private HttpURLConnection mHttpConnection = null;       // HTTP通信
+    // 送信データ
+    private TransData mSendData = null;
+    // HTTP通信
+    private HttpURLConnection mHttpConnection = null;
 
     public HttpAccesser(Context context, TransData sendData) {
         super(context);
         this.mSendData = sendData;
     }
 
-    // Loderの準備が完了した際に呼ばれる
+    /**
+     * バックグラウンド処理
+     * @return
+     */
+    public TransData loadInBackground() {
+        TransData recvData = send(mSendData);
+        return recvData;
+    }
+
+    /*
+     * Loderの準備が完了した際に呼ばれる
+     */
     protected void onStartLoading() {
         // 開始処理
         forceLoad();
     }
 
-    // バックグラウンド処理
-    public TransData loadInBackground() {
-        // ここに非同期処理で実施したい処理を記載する
-        TransData recvData = send(mSendData);
-        return recvData;
-    }
-
-    // サーバへの値の送受信
-    public TransData send(TransData sendData) {
-        OutputStream out = null;            // HTTPリクエスト送信用ストリーム
-        InputStream in = null;              // HTTPレスポンス取得用ストリーム
+    /*
+     * サーバへの値の送受信
+     */
+    private TransData send(TransData sendData) {
+        // HTTPリクエスト送信用ストリーム
+        OutputStream out = null;
+        // HTTPレスポンス取得用ストリーム
+        InputStream in = null;
         boolean ret = false;
-        TransData recvData = null;
+        TransData recvData = new TransData();
 
         // 接続初期化
         ret = initConnection();
         if(false == ret) {
-            return null;
+            return recvData;
         }
 
         try {
             // 接続
             mHttpConnection.connect();
-            Log.d(TAG, "----------success20141018");
-            // データを出力
+
+            // リクエスト送信
             out = mHttpConnection.getOutputStream();
             Gson gson = new Gson();
             String obj2 = gson.toJson(sendData);
             PrintStream ps = new PrintStream(out);
             ps.print(obj2);
             ps.close();
-            Log.d(TAG, "----------success20141018");
-            // レスポンスを取得
+
+            // レスポンス取得
             in = mHttpConnection.getInputStream();
             int size = in.available();
             byte[] buffer = new byte[size];
             in.read(buffer);
             in.close();
             String json = new String(buffer);
-            Log.d(TAG, "----------success20141018");
             recvData = gson.fromJson(json, TransData.class);
-            Log.d(TAG, "----------status" + recvData.status);
-            Log.d(TAG, "----------success20141018");
+            Log.d(TAG, "----------status:" + recvData.status);
+            Log.d(TAG, "----------success");
         } catch(Exception e) {
             e.printStackTrace();
-            Log.d(TAG, "----------exception20141018");
+            Log.d(TAG, "----------exception");
         } finally {
             try {
                 if(in != null) {
@@ -106,7 +111,9 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
         return recvData;
     }
 
-    // 接続初期化
+    /*
+     * 接続初期化
+     */
     private boolean initConnection() {
         // URL指定
         URL url;
@@ -119,8 +126,8 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
             // POST設定
             mHttpConnection.setRequestMethod("POST");
 
-            // HTTPヘッダの「Content-Type」を「application/octet-stream」に設定
-            mHttpConnection.setRequestProperty("Content-Type","application/json");
+            // HTTPヘッダの設定
+            mHttpConnection.setRequestProperty("Content-Type","application/json; charset=utf-8");
 
             // URL 接続を使用して入出力を行う
             mHttpConnection.setDoInput(true);

@@ -15,5 +15,5 @@ public class TransData implements Serializable {
     public String assayDate;
     public String gpsLatitude;
     public String gpsLongitude;
-    public String status;
+    public String status = "9";
 }
