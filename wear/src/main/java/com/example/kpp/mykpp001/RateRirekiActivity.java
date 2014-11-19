@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -25,8 +24,6 @@ public class RateRirekiActivity extends ListActivity {
     static ArrayAdapter<String> adapter;
     // リスト
     private ListView listview;
-    // 削除ボタン
-    private Button delbtn;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,10 +43,6 @@ public class RateRirekiActivity extends ListActivity {
         }
         adapter = new ArrayAdapter<String>(this, R.layout.rate_list, views);
         this.setListAdapter(adapter);
-
-        //ボタンを登録
-        delbtn = (Button)findViewById(R.id.btn_del);
-        delbtn.setOnClickListener(new ClickListener());
     }
 
     /*

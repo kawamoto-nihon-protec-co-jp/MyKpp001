@@ -21,7 +21,7 @@ public class HttpAccesser extends AsyncTaskLoader<TransData> {
     private static final String TAG = HttpAccesser.class.getName();
 
 //    private final static String SERVER_URL = "http://192.168.0.23:8080/testapp/api/resource/putHealthInfo";
-    private final static String SERVER_URL = "http://54.64.73.55:8000/testapp/api/resource/putHealthInfo";
+    private final static String SERVER_URL = "http://54.64.73.55:8000/webservice/api/resource/putHealthInfo";
 
     // 送信データ
     private TransData mSendData = null;
